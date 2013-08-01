@@ -1,0 +1,38 @@
+/*
+Receives integer value and prints it to lcd
+*/
+int mode = 0;//set the mode to the mode of recieving the first incoming Serial data.
+#include <LiquidCrystal.h> //use the LCD library
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); //Set what arduino pins are attached to the LCD
+void setup() {
+  lcd.begin(20, 4); //set the size of the LCD screen
+  Serial.begin(9600);//open the Serial pins
+}
+void loop() {
+  if (Serial.available() > 0) { //only read Serial data if Serial data is available
+     if (mode == 0) {//only read Serial data as current speed if mode is 0
+       long currentMPH = Serial.read();  //Read incoming serial data to float currentMPH
+       lcd.setCursor(0,0); //set the position of the lcd display screen to the top left
+       lcd.print("Speed(MPH):");//Print caption for current MPH
+       lcd.print(currentMPH);//print current MPH
+       mode = 1; //after current MPH was read, next is mode to read average Speed
+     } else { //if not mode 0, there are other modes
+        if (mode == 1) { //only read Serial data as average Speed if mode is 1
+          long averageSpeed = Serial.read(); 
+          lcd.setCursor(0,1); //Set the postion to 2nd row and on the left
+          lcd.print("Avg. Spd(MPH):");
+          lcd.print(averageSpeed);
+          mode = 2; //after average speed was read, next is the mode to read distance travelled
+        } else { // if not mode 0, or mode 1, there is one more option
+            if (mode == 2) { //only read Serial data as distance travelled if mode is 2
+               long distance = Serial.read(); 
+               lcd.setCursor(0,3); //set the lcd position to the 4th(last) row starting on the leftmost column
+               lcd.print("Distance:");
+               lcd.print(distance);
+               mode = 0; //go back to recieving Serial data as current MPH!
+            }
+        }
+     }
+    }
+  delay(10);
+}
