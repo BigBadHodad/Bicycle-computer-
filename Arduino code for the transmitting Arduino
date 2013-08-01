@@ -1,0 +1,38 @@
+#define SPINS_IN_MILE 768
+int prevPinVal = HIGH; //Initializes what the previous value of the reed switch was.
+float cycles = 0.0; //initialization: any 0 which is represented as 0.0 is represented that way because it is a float
+float timeHours = 0.0;
+float distanceMiles = 0.0;
+float currentMPH = 0.0;
+float averageSpeedMPH = 0.0;
+float lowTime = 0.0;
+float rim = 206.25;
+float startTime = 0.0;
+float endTime = 0.0; //end of initialization
+void setup() {
+  pinMode(2, INPUT); //pin mode of the input to the reed switch is input
+  digitalWrite(2, HIGH); //set the vaue of the reed switch Input pin as HIGH so that the the value when the magnet is not near, of that pin is HIGH
+}
+void loop() {
+  int pinVal = digitalRead(2); //define pinVal as Digital read during the begining of each loop
+  if ((pinVal == LOW) && (prevPinVal == HIGH)) { // If the previous value of the reed sensor is HIGH(open)
+    endTime = millis(); //endtime is the time at the end of each cycle, when the magnet passes by the reed switch again
+    lowTime = endTime - startTime; //starttime is the endTime of the last cycle that the magnet passed by the reed switch. The endTime, end of cycle is subtracted from end of 
+                                   //(continued) last cycle to find cycle length in milliseconds
+    ++cycles; // cycles increase by 1
+    timeHours = (millis()/3600000.0); //convert time in millis to time in hours
+    distanceMiles = (cycles*rim)/(30.0*528.0); // find distance in miles
+    currentMPH = (60.0)/((768.0)*(lowTime/60000.0)); //find currentSpeed in MPH
+    averageSpeedMPH = ((distanceMiles)/(timeHours));//find average speeed in MPH
+    Serial.begin(9600); //open Serial port
+    Serial.write((float) currentMPH); // transmit current Speed in MPH
+    delay(10); // delay
+    Serial.write((float)averageSpeedMPH);//transmit average Speed in MPH
+    delay(10);
+    Serial.write((float)distanceMiles);//transmit distance in Miles
+    Serial.end(); // close Serial port
+    delay (250); // long debounce delay
+    startTime = endTime; // set the end Time of the last cycle as the startTime of the upcoming cycle
+  } 
+  prevPinVal = pinVal; // set the value of the reed switch pin as the last measured value so that if the reed switch is sitting next to the magnet, the previous pinval will stay the same as the current pin val and program won't enter the if 
+}
